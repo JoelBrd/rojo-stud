@@ -14,7 +14,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create ${{ github.ref_name }} --verify-tag --title ${{ github.ref_name }}
+          # The release may already exist: the tag can come from publishing a release on GitHub's page.
+          gh release view ${{ github.ref_name }} >/dev/null 2>&1 || gh release create ${{ github.ref_name }} --verify-tag --title ${{ github.ref_name }}
 
   build-plugin:
     needs: ["create-release"]
