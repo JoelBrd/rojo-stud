@@ -33,7 +33,9 @@ Making a new release? Simply add the new header with the version and date undern
 
 * LocalizationTables no longer report as changed when nothing changes. ([#1333])
 * Sounds now preloaded correctly. The warning "*ContentId: rbxassetid://203785492 failed due to: Asset type does not match requested type*" is fixed. ([#1351])
+* Fixed `rojo serve` crashing when queued filesystem events refer to paths whose ancestors have already been removed. ([#1319])
 
+[#1319]: https://github.com/rojo-rbx/rojo/pull/1319
 [#1333]: https://github.com/rojo-rbx/rojo/pull/1333
 [#1351]: https://github.com/rojo-rbx/rojo/pull/1351
 
@@ -43,12 +45,10 @@ Making a new release? Simply add the new header with the version and date undern
 * Fixed `rojo serve` silently stopping syncing file changes on Windows when the served project path was a verbatim (`\\?\`) path, because tree paths and file-watcher event paths were canonicalized to different forms. ([#1290])
 * Fixed `rojo sourcemap --absolute` emitting verbatim (`\\?\`) paths on Windows, which broke require types in luau-lsp. ([#1290])
 * The plugin now disables the `Check for Updates` setting if you block access to `api.github.com`. ([#1297])
-* Fixed `rojo serve` crashing when queued filesystem events refer to paths whose ancestors have already been removed. ([#1314])
 
 [7.7.1]: https://github.com/rojo-rbx/rojo/releases/tag/v7.7.1
 [#1290]: https://github.com/rojo-rbx/rojo/pull/1290
 [#1297]: https://github.com/rojo-rbx/rojo/pull/1297
-[#1314]: https://github.com/rojo-rbx/rojo/issues/1314
 
 ## [7.7.0] (July 1st, 2026)
 
