@@ -129,11 +129,14 @@ fn canonicalize_event_path(vfs: &Vfs, path: &Path) -> io::Result<PathBuf> {
                 let missing_suffix = path.strip_prefix(ancestor).map_err(io::Error::other)?;
                 return Ok(canonical_ancestor.join(missing_suffix));
             }
-            Err(err) if err.kind() == io::ErrorKind::NotFound => match ancestor.parent() {
+            // Any error, not only "not found", can mean the path is going away:
+            // on Windows a folder mid-delete can fail with "access denied". So walk
+            // up on every error, as rojo-rbx/rojo#1350 does, rather than dropping
+            // the event and leaving deleted instances in the tree.
+            Err(err) => match ancestor.parent() {
                 Some(parent) => ancestor = parent,
                 None => return Err(err),
             },
-            Err(err) => return Err(err),
         }
     }
 }
@@ -463,6 +466,24 @@ mod test {
             canonicalize_event_path(&vfs, &missing_path).unwrap(),
             expected_path
         );
+    }
+
+    /// Errors other than "not found" can come from a path that is going away too,
+    /// such as a folder mid-delete on Windows. Here a file stands where an event
+    /// expects a folder, which fails with "not a directory" on Unix.
+    #[cfg(unix)]
+    #[test]
+    fn stale_event_path_canonicalizes_past_other_errors() {
+        let dir = tempfile::tempdir().unwrap();
+        fs::write(dir.path().join("file.luau"), "return {}").unwrap();
+        let path = dir.path().join("file.luau").join("child.luau");
+        let expected_path = dunce::canonicalize(dir.path())
+            .unwrap()
+            .join("file.luau")
+            .join("child.luau");
+        let vfs = Vfs::new(StdBackend::new().unwrap());
+
+        assert_eq!(canonicalize_event_path(&vfs, &path).unwrap(), expected_path);
     }
 }
 
