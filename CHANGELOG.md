@@ -33,7 +33,9 @@ Making a new release? Simply add the new header with the version and date undern
 
 * LocalizationTables no longer report as changed when nothing changes. ([#1333])
 * Sounds now preloaded correctly. The warning "*ContentId: rbxassetid://203785492 failed due to: Asset type does not match requested type*" is fixed. ([#1351])
+* Fixed `rojo serve` crashing when queued filesystem events refer to paths whose ancestors have already been removed. ([#1319])
 
+[#1319]: https://github.com/rojo-rbx/rojo/pull/1319
 [#1333]: https://github.com/rojo-rbx/rojo/pull/1333
 [#1351]: https://github.com/rojo-rbx/rojo/pull/1351
 

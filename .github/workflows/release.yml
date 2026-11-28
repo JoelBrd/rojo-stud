@@ -14,7 +14,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create ${{ github.ref_name }} --draft --verify-tag --title ${{ github.ref_name }}
+          # The release may already exist: the tag can come from publishing a release on GitHub's page.
+          # A new one starts as a draft, so no one sees it before every file is uploaded (publish-release).
+          gh release view ${{ github.ref_name }} >/dev/null 2>&1 || gh release create ${{ github.ref_name }} --draft --verify-tag --title ${{ github.ref_name }}
 
   build-plugin:
     needs: ["create-release"]
@@ -45,12 +47,6 @@ jobs:
           name: Rojo.rbxm
           path: Rojo.rbxm
       
-      - name: Upload Plugin to Roblox
-        env:
-          RBX_API_KEY: ${{ secrets.PLUGIN_UPLOAD_TOKEN }}
-          RBX_UNIVERSE_ID: ${{ vars.PLUGIN_CI_PLACE_ID }}
-          RBX_PLACE_ID: ${{ vars.PLUGIN_CI_UNIVERSE_ID }}
-        run: lune run upload-plugin Rojo.rbxm
 
   build:
     needs: ["create-release"]
@@ -155,3 +151,17 @@ jobs:
         with:
           path: ${{ env.ARTIFACT_NAME }}
           name: ${{ env.ARTIFACT_NAME }}
+
+  # rokit can't see draft releases, so publish once every build has uploaded its files.
+  # A release made on GitHub's page is already published; this then changes nothing.
+  publish-release:
+    needs: ["build-plugin", "build"]
+    name: Publish Release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Publish Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release edit ${{ github.ref_name }} --draft=false
